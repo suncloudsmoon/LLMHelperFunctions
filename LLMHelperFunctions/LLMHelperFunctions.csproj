@@ -19,6 +19,7 @@
     <PackageReleaseNotes>1.0.0
 - Contains all the basic stuff</PackageReleaseNotes>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Description>Contains a bunch of LLM functions that are useful in LLM application development.</Description>
   </PropertyGroup>
 
   <ItemGroup>
