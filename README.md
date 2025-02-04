@@ -4,7 +4,7 @@ fetching the context length from different model providers like Ollama. This pro
 
 ## Usage
 ```
-TODO
+dotnet add package LLMHelperFunctions
 ```
 
 ## Example

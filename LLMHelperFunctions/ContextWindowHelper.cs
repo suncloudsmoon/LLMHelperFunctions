@@ -7,10 +7,26 @@ using static LLMHelperFunctions.ContextWindowHelper;
 
 namespace LLMHelperFunctions
 {
+    /// <summary>
+    /// Provides helper functions for determining the context window size (i.e. number of tokens)
+    /// for embedding and conversational models from different providers such as OpenAI and Ollama.
+    /// </summary>
     public class ContextWindowHelper
     {
-        // Helper functions for getting the context length for embedding models for different model providers (i.e. Ollama)
-        public enum ModelProvider { OpenAI, Ollama };
+        /// <summary>
+        /// Identifiers for supported model providers.
+        /// </summary>
+        public enum ModelProvider
+        {
+            /// <summary>
+            /// OpenAI models.
+            /// </summary>
+            OpenAI,
+            /// <summary>
+            /// Ollama models.
+            /// </summary>
+            Ollama
+        };
 
         private static readonly Dictionary<string, int> _openAIModelContextWindows = new Dictionary<string, int>()
         {
@@ -80,6 +96,29 @@ namespace LLMHelperFunctions
 
         private static ContextLenCacheSystem _contextLenCacheSystem = new ContextLenCacheSystem(); // because network requests are slower
 
+        // Helper functions for getting the context length for embedding models for different model providers (i.e. Ollama)
+
+        /// <summary>
+        /// Retrieves the context window (number of tokens) for the specified model from the given provider.
+        /// </summary>
+        /// <param name="provider">The model provider (e.g. <see cref="ModelProvider.OpenAI"/> or <see cref="ModelProvider.Ollama"/>).</param>
+        /// <param name="endpoint">
+        /// The endpoint URI to use when accessing the model information. For example, this can be used by
+        /// the Ollama provider to fetch details from a remote server.
+        /// </param>
+        /// <param name="model">The identifier or alias for the model whose context window is requested.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the context window size as an integer.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown when the specified model does not have a known context length (for OpenAI).
+        /// </exception>
+        /// <exception cref="OllamaException">
+        /// Thrown when the context window cannot be retrieved from an Ollama provider.
+        /// </exception>
+        /// <exception cref="NotImplementedException">
+        /// Thrown when the specified model provider is not supported.
+        /// </exception>
         public static async Task<int> GetContextWindow(ModelProvider provider, Uri endpoint, string model)
         {
             switch (provider)
@@ -130,6 +169,17 @@ namespace LLMHelperFunctions
             }
         }
 
+        /// <summary>
+        /// Splits the provided content into multiple chunks, each corresponding to an approximate number of tokens.
+        /// This method estimates the number of characters to include per chunk based on the provided token count.
+        /// </summary>
+        /// <param name="content">The text content to be split into chunks.</param>
+        /// <param name="numTokens">
+        /// The target number of tokens per chunk. The method converts this to an estimated character count.
+        /// </param>
+        /// <returns>
+        /// An enumerable of string chunks created from the content.
+        /// </returns>
         public static IEnumerable<string> Chunkify(string content, int numTokens)
         {
             int charCount = CharToTokenCount(numTokens);
@@ -145,12 +195,26 @@ namespace LLMHelperFunctions
             return paragraphs;
         }
 
+        /// <summary>
+        /// Converts a given character count to an estimated token count.
+        /// This estimation is based on a simple heuristic (approximately 1 token per 4 characters)
+        /// as used by OpenAI's tokenizer.
+        /// </summary>
+        /// <param name="charCount">The number of characters.</param>
+        /// <returns>The estimated number of tokens.</returns>
         public static int CharToTokenCount(int charCount)
         {
             // https://platform.openai.com/tokenizer
             return charCount / 4;
         }
 
+        /// <summary>
+        /// Converts a given token count to an estimated character count.
+        /// This estimation is based on a simple heuristic (approximately 4 characters per token)
+        /// as used by OpenAI's tokenizer.
+        /// </summary>
+        /// <param name="tokenCount">The number of tokens.</param>
+        /// <returns>The estimated number of characters.</returns>
         public static int TokenToCharCount(int tokenCount)
         {
             // https://platform.openai.com/tokenizer
