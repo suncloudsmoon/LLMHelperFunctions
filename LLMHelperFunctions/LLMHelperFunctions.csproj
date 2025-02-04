@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <UserSecretsId>f2ff0c24-0db2-48a6-99df-65bd97dc9926</UserSecretsId>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <Version>$(VersionPrefix)</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenAI" Version="2.1.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.1" />
+  </ItemGroup>
+
+</Project>
