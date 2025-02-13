@@ -273,8 +273,14 @@ namespace LLMHelperFunctions
 
         public bool TryGetContextWindow(ModelProvider provider, string model, out int contextWindow)
         {
+            contextWindow = 0;
             CheckModelProviderValidity(provider);
-            return _modelContextLenCache[provider].TryGetValue(model,out contextWindow);
+
+            Dictionary<string, int> ctxDict;
+            if (!_modelContextLenCache.TryGetValue(provider, out ctxDict))
+                return false;
+
+            return ctxDict.TryGetValue(model,out contextWindow);
         }
 
         private static void CheckModelProviderValidity(ModelProvider provider)
