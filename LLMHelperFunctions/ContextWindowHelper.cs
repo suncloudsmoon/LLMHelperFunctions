@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json;
 using System.Threading.Tasks;
 using static LLMHelperFunctions.ContextWindowHelper;
+using System.Text.RegularExpressions;
 
 namespace LLMHelperFunctions
 {
@@ -121,15 +122,15 @@ namespace LLMHelperFunctions
         /// </exception>
         public static async Task<int> GetContextWindow(ModelProvider provider, Uri endpoint, string model)
         {
+            // Cache system
+            int contextWindow;
+            if (_contextLenCacheSystem.TryGetContextWindow(provider, model, out contextWindow))
+                return contextWindow;
+
             switch (provider)
             {
                 case ModelProvider.OpenAI:
-                    int contextWindow;
-                    if (_contextLenCacheSystem.TryGetContextWindow(provider, model, out contextWindow))
-                    {
-                        return contextWindow;
-                    }
-                    else if (_openAIModelAliases.TryGetValue(model, out contextWindow))
+                    if (_openAIModelAliases.TryGetValue(model, out contextWindow))
                     {
                         _contextLenCacheSystem.Cache(provider, model, contextWindow);
                         return contextWindow;
@@ -146,6 +147,11 @@ namespace LLMHelperFunctions
                 case ModelProvider.Ollama:
                     Ollama ollamaInstance = new Ollama(endpoint);
                     var dict = await ollamaInstance.Show(model, verbose: true);
+                    
+                    // Check if Ollama has manually overridden the num_ctx parameter
+                    int? num_ctx = ExtractNumCtx(dict);
+                    if (num_ctx != null)
+                        return (int) num_ctx;
 
                     // Navigate to "model_info"
                     if (dict.TryGetValue("model_info", out var modelInfoObj) && modelInfoObj is JsonElement modelInfoElement)
@@ -158,7 +164,9 @@ namespace LLMHelperFunctions
                             // Search for a nested object containing "context_length"
                             if (keyValuePair.Key.EndsWith(".context_length"))
                             {
-                                return int.Parse(keyValuePair.Value.ToString());
+                                int ctx = int.Parse(keyValuePair.Value.ToString());
+                                _contextLenCacheSystem.Cache(provider, model, ctx);
+                                return ctx;
                             }
                         }
                     }
@@ -219,6 +227,36 @@ namespace LLMHelperFunctions
         {
             // https://platform.openai.com/tokenizer
             return tokenCount * 4;
+        }
+
+        private static int? ExtractNumCtx(Dictionary<string, object> apiResponse)
+        {
+            if (apiResponse == null)
+            {
+                throw new ArgumentNullException(nameof(apiResponse));
+            }
+
+            // Check if the response contains a "modelfile" key.
+            if (apiResponse.TryGetValue("modelfile", out var modelfileObj) && modelfileObj != null)
+            {
+                string modelfile = modelfileObj.ToString();
+                if (!string.IsNullOrWhiteSpace(modelfile))
+                {
+                    // Regex pattern looks for a line that starts with "PARAMETER num_ctx" followed by a number.
+                    var regex = new Regex(@"PARAMETER\s+num_ctx\s+(\d+)", RegexOptions.IgnoreCase);
+                    var match = regex.Match(modelfile);
+                    if (match.Success && match.Groups.Count > 1)
+                    {
+                        if (int.TryParse(match.Groups[1].Value, out int numCtx))
+                        {
+                            return numCtx;
+                        }
+                    }
+                }
+            }
+
+            // Return null if num_ctx is not found or could not be parsed.
+            return null;
         }
     }
 
