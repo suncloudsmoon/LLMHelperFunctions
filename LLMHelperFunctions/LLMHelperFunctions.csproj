@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <UserSecretsId>f2ff0c24-0db2-48a6-99df-65bd97dc9926</UserSecretsId>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
-    <FileVersion>1.0.1</FileVersion>
-    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
+    <Version>1.0.2</Version>
     <Title>LLMHelperFunctions</Title>
     <Copyright>Copyright (c) 2025 suncloudsmoon</Copyright>
     <PackageProjectUrl></PackageProjectUrl>
@@ -16,9 +16,13 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <PackageReleaseNotes>1.0.1
+    <PackageReleaseNotes>1.0.2
+- Bug fixes
+- Add check for num_ctx (Ollama API)
+---
+1.0.1
 - Bug fix
---
+---
 1.0.0
 - Contains all the basic stuff</PackageReleaseNotes>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
