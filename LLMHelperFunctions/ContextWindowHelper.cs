@@ -182,7 +182,7 @@ namespace LLMHelperFunctions
         /// </returns>
         public static IEnumerable<string> Chunkify(string content, int numTokens)
         {
-            int charCount = CharToTokenCount(numTokens);
+            int charCount = TokenToCharCount(numTokens);
             List<string> paragraphs = new List<string>();
 
             for (int i = 0; i < content.Length; i += charCount)
